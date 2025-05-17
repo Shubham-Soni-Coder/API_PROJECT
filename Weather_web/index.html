@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <form id="weatherForm">
+            <input type="text" id="city" name="city" placeholder="Enter city name" required>
+            <button type="submit">Get Weather</button>
+        </form>
+        <div id="loading" style="display:none;">
+            <div class="spinner"></div>
+            Loading...
+        </div>
+        <div id="weatherResult"></div>
+    </div>
+    <script>
+        const form = document.getElementById('weatherForm');
+        const resultDiv = document.getElementById('weatherResult');
+        const loadingDiv = document.getElementById('loading');
+        const cityInput = document.getElementById('city');
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const city = cityInput.value.trim();
+            if (!city) {
+                resultDiv.innerHTML = `<p style='color:red;'>Please enter a city name.</p>`;
+                resultDiv.classList.remove('visible');
+                return;
+            }
+            resultDiv.innerHTML = '';
+            resultDiv.classList.remove('visible');
+            loadingDiv.style.display = 'flex';
+            try {
+                const res = await fetch(`/weather?city=${encodeURIComponent(city)}`);
+                const data = await res.json();
+                loadingDiv.style.display = 'none';
+                if (res.ok) {
+                    resultDiv.innerHTML = `
+                        <h2>Weather in ${city}</h2>
+                        <p><strong>Temperature:</strong> ${data.temp} °C</p>
+                        <p><strong>Humidity:</strong> ${data.humidity} %</p>
+                        <p><strong>Pressure:</strong> ${data.pressure} hPa</p>
+                        <p><strong>Wind Speed:</strong> ${data.wind_speed} m/s</p>
+                        <p><strong>Description:</strong> ${data.description}</p>
+                        <img src="https://openweathermap.org/img/wn/${data.icon}@2x.png" alt="Weather icon">
+                    `;
+                    setTimeout(() => resultDiv.classList.add('visible'), 10);
+                } else {
+                    resultDiv.innerHTML = `<p style='color:red;'>${data.error}</p>`;
+                    resultDiv.classList.add('visible');
+                }
+            } catch (err) {
+                loadingDiv.style.display = 'none';
+                resultDiv.innerHTML = `<p style='color:red;'>Error fetching weather data.</p>`;
+                resultDiv.classList.add('visible');
+            }
+        });
+        // Add event to trigger form submit on Enter key in input
+        cityInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+            }
+        });
+    </script>
+</body>
+</html>
