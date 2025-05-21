@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function showSuccess() {
+            const details = document.querySelector('.movie-details');
+            if (details) {
+                details.classList.add('movie-appear');
+            }
+            const form = document.querySelector('form');
+            if (form) {
+                form.classList.add('form-animate');
+            }
+        }
+        window.onload = showSuccess;
+
+        // Scroll animation for movie details
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('scroll-in');
+                    }
+                });
+            }, { threshold: 0.2 });
+            const movieDetails = document.querySelectorAll('.movie-details');
+            movieDetails.forEach(el => observer.observe(el));
+        });
+    </script>
+    <style>
+        @keyframes pop-in {
+            0% { transform: scale(0.8) translateY(40px); opacity: 0; }
+            80% { transform: scale(1.05) translateY(-5px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); }
+        }
+        @keyframes form-slide {
+            0% { transform: translateY(-40px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes scroll-fade-in {
+            0% { opacity: 0; transform: translateY(60px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .form-animate {
+            animation: form-slide 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        .movie-appear {
+            animation: pop-in 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        .scroll-in {
+            animation: scroll-fade-in 1s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        .highlight { color: #ffb400; font-weight: bold; }
+        .poster-img { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); margin-bottom: 15px; }
+        .ratings { margin-top: 10px; }
+        .ratings span { display: inline-block; margin-right: 10px; background: #333; color: #ffb400; padding: 3px 8px; border-radius: 4px; font-size: 0.95em; }
+        .error { animation: pop-in 0.7s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Movie Explorer <span style="font-size:1.2em;">🍿</span></h1>
+        <form method="post">
+            <input type="text" name="movie_name" placeholder="Enter movie name" required autofocus>
+            <input type="submit" value="Search">
+        </form>
+        {% if movie %}
+        <div class="movie-details">
+            {% if movie.poster and movie.poster != 'N/A' %}
+            <img src="{{ movie.poster }}" alt="Movie Poster" class="poster-img">
+            {% endif %}
+            <h2 class="highlight">{{ movie.title }}</h2>
+            <p><strong>Year:</strong> {{ movie.year }} | <strong>Rated:</strong> {{ movie.rated }} | <strong>Runtime:</strong> {{ movie.runtime }}</p>
+            <p><strong>Genre:</strong> {{ movie.genre }}</p>
+            <p><strong>Director:</strong> {{ movie.director }}</p>
+            <p><strong>Actors:</strong> {{ movie.actors }}</p>
+            <p><strong>Language:</strong> {{ movie.language }}</p>
+            <p><strong>Country:</strong> {{ movie.country }}</p>
+            <p><strong>Plot:</strong> {{ movie.plot }}</p>
+            <div class="ratings">
+                {% for rating in movie.ratings %}
+                <span>{{ rating.Source }}: {{ rating.Value }}</span>
+                {% endfor %}
+            </div>
+            <p><strong>Awards:</strong> {{ movie.awards }}</p>
+            <p style="margin-top:18px;">
+                For more details, visit:
+                <a href="https://www.imdb.com/title/{{ movie.imdb_id }}/" target="_blank" style="color:#ffb400; text-decoration:underline;">
+                    IMDB Page
+                </a>
+            </p>
+        </div>
+        <script>showSuccess();</script>
+        {% endif %}
+        {% if error %}
+        <div class="error">
+            <span style="font-size:1.5em;">&#9888;</span>
+            {{ error }}<br>
+            <span style="font-size:0.95em;">Please check the movie name and try again.</span>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
